@@ -1,5 +1,7 @@
 import express from "express";
-import { getOrders } from "./orders.service";
+import { getOrders, upsertOrder } from "./orders.service";
+import { validate } from "../../middleware/validation.middleware";
+import { orderPOSTRequestSchema } from "../types";
 
 export const ordersRouter = express.Router();
 
@@ -22,3 +24,15 @@ ordersRouter.get("/", async (req, res) => {
             }
         }
     );
+
+    ordersRouter.post('/', validate(orderPOSTRequestSchema), async (req, res) => {
+        const data = orderPOSTRequestSchema.parse(req);
+        const order = await upsertOrder(data.body);
+
+        if(order!==null) {
+            res.status(201).json(order);
+        }
+        else {
+            res.status(500).json({message: 'Creation failed'});
+        }
+    });
