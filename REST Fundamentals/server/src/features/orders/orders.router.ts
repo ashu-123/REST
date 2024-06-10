@@ -1,7 +1,7 @@
 import express from "express";
 import { addOrderItems, getOrders, upsertOrder, deleteOrderItem, deleteOrder } from "./orders.service";
 import { validate } from "../../middleware/validation.middleware";
-import { idItemIdUUIDRequestSchema, idUUIDRequestSchema, orderItemsDTORequestSchema, orderPOSTRequestSchema } from "../types";
+import { idItemIdUUIDRequestSchema, idUUIDRequestSchema, orderItemsDTORequestSchema, orderPOSTRequestSchema, orderPUTRequestSchema } from "../types";
 import { create } from "xmlbuilder2";
 
 export const ordersRouter = express.Router();
@@ -45,6 +45,17 @@ ordersRouter.get("/", async (req, res) => {
         if(order!=null) res.status(201).json(order);
         else res.status(500).json({message: "Creation failed"});
     });
+
+    ordersRouter.put("/:id", validate(orderPUTRequestSchema), async (req, res) => {
+        const data = orderPUTRequestSchema.parse(req);
+        const orderData = { customerId: "", ...data.body };
+        const order = await upsertOrder(orderData, data.params.id);
+        if (order != null) {
+          res.json(order);
+        } else {
+          res.status(404).json({ message: "Order Not Found" });
+        }
+      });
 
     ordersRouter.delete("/:id", validate(idUUIDRequestSchema), async (req, res) => {
         const data = idUUIDRequestSchema.parse(req);

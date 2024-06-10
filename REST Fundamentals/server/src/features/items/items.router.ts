@@ -1,7 +1,7 @@
 import express from "express";
 import { getItemDetail, getItems, upsertItem } from "./items.service";
 import { validate } from "../../middleware/validation.middleware";
-import { itemPOSTRequestSchema } from "../types";
+import { itemPOSTRequestSchema, itemPUTRequestSchema } from "../types";
 
 export const itemsRouter = express.Router();
 
@@ -34,6 +34,18 @@ itemsRouter.post('/', validate(itemPOSTRequestSchema), async (req, res) => {
   }
   else {
     res.status(500).json({message: 'Internal Server Error'});
+  }
+});
+
+itemsRouter.put("/:id", validate(itemPUTRequestSchema), async (req, res) => {
+  const data = itemPUTRequestSchema.parse(req);
+  const item = await upsertItem(data.body, data.params.id);
+
+  if(item!==null) {
+    res.status(204);
+  }
+  else {
+    res.status(404).json({message: "item not found"});
   }
 });
 
